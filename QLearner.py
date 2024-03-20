@@ -1,8 +1,11 @@
 import numpy as np
+
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import Adam
+from tensorflow import keras
+from keras.layers import Dense
+from keras.models import Sequential, load_model
+from keras.optimizers import Adam
+
 
 class QAgent:
     def __init__(self, state_size, action_size):
