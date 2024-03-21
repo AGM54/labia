@@ -15,7 +15,7 @@ class QAgent:
         self.discount_rate = 0.99
         self.epsilon = 1.0
         self.epsilon_decay = 0.995
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.001
         self.model = self._build_model()
 
     def _build_model(self):
@@ -45,7 +45,7 @@ class QAgent:
 
 #fitting function 
 def check_connection(board, row, col, piece,cols,rows):
-# Check horizontal connection
+# Check horizontal connection 
     if col <= cols - 4:
         if np.count_nonzero(board[row, col:col+4] == piece) == 4:
             return True

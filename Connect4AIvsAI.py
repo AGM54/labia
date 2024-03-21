@@ -214,7 +214,7 @@ q_agent = QAgent(state_size, action_size)
 turn = 0
 total_rewards = []
 #training the model against himself
-for _ in range(50):
+for _ in range(150):
     board = create_board()
     game_over = False
     isdraw = True
@@ -280,7 +280,7 @@ for _ in range(50):
         if not game_over:
             #TURN FORTHE DEEP QLEARNER
             # Representación del estado (aplanar el tablero)
-            state = np.reshape(board, [1, state_size])
+            state = np.reshape(board, [1, state_size]) 
 
             # Selección de la acción por el agente
             col = q_agent.act(state)
@@ -331,7 +331,7 @@ plt.savefig('resultados_barras.pdf')
 plt.show()
 
 # Gráfico de resultados por iteración
-plt.scatter(results)
+plt.scatter(y=results,x=range(len(results)))
 plt.xlabel('Iteración')
 plt.ylabel('Resultado (0: Empate, 1: Qlearner Wins, 2: Minimax Wins)')
 plt.title('Resultados por iteración')
