@@ -1,9 +1,8 @@
 import numpy as np
 import random
-import pygame
 import sys
 import math
-from QLearner import QAgent
+from QLearner import QAgent,check_connection
 BLUE = (0,0,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
@@ -188,20 +187,6 @@ def pick_best_move(board, piece):
 
     return best_col
 
-def draw_board(board):
-    for c in range(COLUMN_COUNT):
-        for r in range(ROW_COUNT):
-            pygame.draw.rect(screen, BLUE, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
-            pygame.draw.circle(screen, BLACK, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
-    
-    for c in range(COLUMN_COUNT):
-        for r in range(ROW_COUNT):		
-            if board[r][c] == PLAYER_PIECE:
-                pygame.draw.circle(screen, RED, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
-            elif board[r][c] == AI_PIECE: 
-                pygame.draw.circle(screen, YELLOW, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
-    pygame.display.update()
-
 board = create_board()
 game_over = False
 
@@ -217,18 +202,75 @@ RADIUS = int(SQUARESIZE/2 - 5)
 
 isdraw = True
 
+
+
+
 # Inicialización del agente Q-learning
+import matplotlib.pyplot as plt
+
 state_size = ROW_COUNT * COLUMN_COUNT
 action_size = COLUMN_COUNT
 q_agent = QAgent(state_size, action_size)
-turn = random.randint(PLAYER, AI)
+turn = 0
+total_rewards = []
+#training the model against himself
+for _ in range(50):
+    board = create_board()
+    game_over = False
+    isdraw = True
+    rewards = 0
+    while not game_over:
+        if not game_over:
+            #TURN FORTHE DEEP QLEARNER
+            # Representación del estado (aplanar el tablero)
+            state = np.reshape(board, [1, state_size])
+
+            # Selección de la acción por el agente
+            col = q_agent.act(state)
+
+            if is_valid_location(board, col):
+                row = get_next_open_row(board, col)
+                if turn == PLAYER:
+                    drop_piece(board, row, col, PLAYER_PIECE)
+                else: # its the other piece turn 
+                    drop_piece(board, row, col, AI_PIECE)
+                next = np.reshape(board, [1, state_size])
+                if turn == PLAYER:
+                    if check_connection(board ,row, col,PLAYER_PIECE,COLUMN_COUNT,ROW_COUNT): #reward for conecting pieces
+                        q_agent.train(state,col,0.5,next,False)
+                        rewards += 0.5
+                else: # its the other piece turn 
+                    if check_connection(board ,row, col,AI_PIECE,COLUMN_COUNT,ROW_COUNT): #reward for conecting pieces
+                        q_agent.train(state,col,0.5,next,False)
+                        rewards += 0.5
+                if winning_move(board, PLAYER_PIECE): #big reward for winning move
+                    q_agent.train(state,col,1,next,True)
+                    game_over = True
+                    isdraw = False
+                    rewards += 1
+            turn += 1
+            turn = turn%2
+    total_rewards.append(rewards)
+
+plt.plot(total_rewards)
+plt.xlabel('Episodio')
+plt.ylabel('Recompensa acumulada')
+plt.title('Recompensas acumuladas por episodio')
+plt.grid(True)
+
+# Guardar la gráfica en un archivo PDF
+plt.savefig('recompensas.pdf')
+
+# Mostrar la gráfica
+plt.show()
+                    
 results = []
-for _ in range(5):
+for _ in range(50):
     board = create_board()
     game_over = False
     isdraw = True
     while not game_over:
-        if not game_over and turn == PLAYER:
+        if not game_over:
             #TURN FORTHE DEEP QLEARNER
             # Representación del estado (aplanar el tablero)
             state = np.reshape(board, [1, state_size])
@@ -244,9 +286,7 @@ for _ in range(5):
                     game_over = True
                     isdraw = False
                     results.append(PLAYER_PIECE)
-            turn +=1 
-            turn = turn % 2
-        if not game_over and turn == AI : #TRUN OF THE MIN MAX
+        if not game_over: #TRUN OF THE MIN MAX
             col, ai1_minimax_score = minimax(board, 5, -math.inf, math.inf, False)
             if is_valid_location(board, col):
                 row = get_next_open_row(board, col)
@@ -256,9 +296,40 @@ for _ in range(5):
                     results.append(AI_PIECE)
                     game_over = True
                     isdraw = False
-            turn +=1 
-            turn = turn % 2
         if game_over:
             if isdraw:
                 results.append(0)
 print(results)
+
+draws = results.count(0)
+qlearner_wins = results.count(1)
+minmax_wins = results.count(2)
+
+# Gráfico de barras
+labels = ['Empate', 'Qlearner Wins', 'Minimax Wins']
+values = [draws, qlearner_wins, minmax_wins]
+
+plt.bar(labels, values, color=['blue', 'green', 'red'])
+plt.xlabel('Resultados')
+plt.ylabel('Cantidad de juegos')
+plt.title('Resultados de las iteraciones')
+plt.grid(True)
+
+# Guardar la gráfica de barras en un archivo PDF
+plt.savefig('resultados_barras.pdf')
+
+# Mostrar la gráfica de barras
+plt.show()
+
+# Gráfico de resultados por iteración
+plt.plot(results)
+plt.xlabel('Iteración')
+plt.ylabel('Resultado (0: Empate, 1: Qlearner Wins, 2: Minimax Wins)')
+plt.title('Resultados por iteración')
+plt.grid(True)
+
+# Guardar la gráfica de resultados por iteración en un archivo PDF
+plt.savefig('resultados_iteracion.pdf')
+
+# Mostrar la gráfica de resultados por iteración
+plt.show()

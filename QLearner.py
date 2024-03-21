@@ -25,8 +25,6 @@ class QAgent:
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=Adam(learning_rate=self.learning_rate))
 
-
-
         return model
 
     def act(self, state):
@@ -44,3 +42,27 @@ class QAgent:
         self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+#fitting function 
+def check_connection(board, row, col, piece,cols,rows):
+# Check horizontal connection
+    if col <= cols - 4:
+        if np.count_nonzero(board[row, col:col+4] == piece) == 4:
+            return True
+    
+    # Check vertical connection
+    if row <= rows - 4:
+        if np.count_nonzero(board[row:row+4, col] == piece) == 4:
+            return True
+    
+    # Check diagonal connection (positive slope)
+    if col <= cols - 4 and row <= rows - 4:
+        if np.count_nonzero([board[row+i, col+i] for i in range(4)] == piece) == 4:
+            return True
+    
+    # Check diagonal connection (negative slope)
+    if col >= 3 and row <= rows - 4:
+        if np.count_nonzero([board[row+i, col-i] for i in range(4)] == piece) == 4:
+            return True
+    
+    return False
