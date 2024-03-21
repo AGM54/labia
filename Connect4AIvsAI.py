@@ -219,7 +219,10 @@ for _ in range(50):
     game_over = False
     isdraw = True
     rewards = 0
+    cells = ROW_COUNT * COLUMN_COUNT
     while not game_over:
+        if cells <= 0 and not game_over: #is a draw
+            game_over = True
         if not game_over:
             #TURN FORTHE DEEP QLEARNER
             # Representación del estado (aplanar el tablero)
@@ -229,6 +232,7 @@ for _ in range(50):
             col = q_agent.act(state)
 
             if is_valid_location(board, col):
+                cells -= 1
                 row = get_next_open_row(board, col)
                 if turn == PLAYER:
                     drop_piece(board, row, col, PLAYER_PIECE)
@@ -269,7 +273,10 @@ for _ in range(50):
     board = create_board()
     game_over = False
     isdraw = True
+    cells = ROW_COUNT * COLUMN_COUNT
     while not game_over:
+        if cells <= 0:
+            game_over = True
         if not game_over:
             #TURN FORTHE DEEP QLEARNER
             # Representación del estado (aplanar el tablero)
@@ -279,6 +286,7 @@ for _ in range(50):
             col = q_agent.act(state)
 
             if is_valid_location(board, col):
+                cells -= 1
                 row = get_next_open_row(board, col)
                 drop_piece(board, row, col, PLAYER_PIECE)
 
@@ -289,6 +297,7 @@ for _ in range(50):
         if not game_over: #TRUN OF THE MIN MAX
             col, ai1_minimax_score = minimax(board, 5, -math.inf, math.inf, False)
             if is_valid_location(board, col):
+                cells -= 1
                 row = get_next_open_row(board, col)
                 drop_piece(board, row, col, AI_PIECE)
 
@@ -322,7 +331,7 @@ plt.savefig('resultados_barras.pdf')
 plt.show()
 
 # Gráfico de resultados por iteración
-plt.plot(results)
+plt.scatter(results)
 plt.xlabel('Iteración')
 plt.ylabel('Resultado (0: Empate, 1: Qlearner Wins, 2: Minimax Wins)')
 plt.title('Resultados por iteración')
