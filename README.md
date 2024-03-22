@@ -5,3 +5,4 @@
 - resultados_iteraciones: visualizacion por cada juego los resultados , 0: empate, 1: Qlearner gana, 2: Min max gana
 
 ## Video explicativo
+https://drive.google.com/drive/u/0/home 
